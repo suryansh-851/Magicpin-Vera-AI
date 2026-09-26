@@ -1,0 +1,16 @@
+name: keep-alive
+
+# Render's free plan sleeps after ~15 min without traffic, which would wipe the bot's in-memory state and
+# make the judge's first healthz call time out. This pings it every 10 minutes as a backup to an external
+# uptime monitor. Set the repo variable BOT_URL (Settings -> Secrets and variables -> Actions -> Variables).
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: ${{ vars.BOT_URL != '' }}
+    steps:
+      - run: curl -fsS --max-time 60 "${{ vars.BOT_URL }}/v1/healthz"

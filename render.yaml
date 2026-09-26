@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: vera-bot
+    runtime: python
+    plan: free               # sleeps after ~15 min idle: keep it awake with an external ping (see README)
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn bot:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /v1/healthz
+    envVars:
+      - key: PYTHONUTF8
+        value: "1"
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: LLM_PROVIDER
+        value: groq
+      - key: LLM_API_KEY
+        sync: false          # set in the Render dashboard, never in git
+      - key: TEAM_NAME
+        value: Vera+
+      - key: TEAM_MEMBERS
+        value: Suryansh Singh

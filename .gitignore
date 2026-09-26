@@ -1,0 +1,35 @@
+# Secrets — never commit real keys
+.env
+*.env
+!.env.example
+
+# Caches (regenerated at runtime)
+.llm_cache.json
+.judge_cache.json
+
+# Regenerated dataset (rebuild with dataset/generate_dataset.py)
+dataset/expanded/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Packaged submission artifacts (rebuild with scripts/package_submission.py)
+submission_package.zip
+*.zip
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
