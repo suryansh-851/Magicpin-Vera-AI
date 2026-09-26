@@ -30,10 +30,15 @@ Free instances sleep after ~15 minutes without traffic. A sleeping bot takes 30�
 healthz times out after a few seconds, and 3 consecutive failures disqualify the slot. A restart also wipes
 every context the judge pushed.
 
-- **Primary:** create a free monitor at uptimerobot.com (or cron-job.org): HTTP(s), URL
-  `https://<your-service>.onrender.com/v1/healthz`, interval **5 minutes**.
-- **Backup:** in GitHub → repo **Settings → Secrets and variables → Actions → Variables**, add
-  `BOT_URL` = `https://<your-service>.onrender.com`. The `keep-alive` workflow then pings every 10 minutes.
+- **Built in:** on startup the bot pings its own `/v1/healthz` every 5 minutes via `RENDER_EXTERNAL_URL`, which
+  Render sets automatically. The request goes through Render's proxy, so it counts as traffic and the instance
+  never goes idle. Nothing to configure (`KEEPALIVE_INTERVAL_SECONDS` changes the interval, `0` disables it).
+  It can't wake an instance that is already asleep, so after a sleep or deploy open `/v1/healthz` once.
+- **External backup:** create a free monitor at uptimerobot.com (or cron-job.org): HTTP(s), URL
+  `https://<your-service>.onrender.com/v1/healthz`, interval **5 minutes**. This one can wake a sleeping instance.
+- **GitHub backup:** in GitHub → repo **Settings → Secrets and variables → Actions → Variables**, add
+  `BOT_URL` = `https://<your-service>.onrender.com`. The `keep-alive` workflow then pings every 10 minutes
+  (GitHub often delays scheduled runs, so don't rely on it alone). Without `BOT_URL` the workflow does nothing.
 
 Before submitting, and again just before the test window, open `/v1/healthz` yourself and confirm it answers
 instantly with `"status":"ok"`.

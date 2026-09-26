@@ -1,8 +1,8 @@
 name: keep-alive
 
 # Render's free plan sleeps after ~15 min without traffic, which would wipe the bot's in-memory state and
-# make the judge's first healthz call time out. This pings it every 10 minutes as a backup to an external
-# uptime monitor. Set the repo variable BOT_URL (Settings -> Secrets and variables -> Actions -> Variables).
+# make the judge's first healthz call time out. The bot already pings itself (bot.py, RENDER_EXTERNAL_URL);
+# this is a backup that can also wake a sleeping instance. Set the repo variable BOT_URL (Settings -> Secrets and variables -> Actions -> Variables).
 on:
   schedule:
     - cron: "*/10 * * * *"

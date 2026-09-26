@@ -13,6 +13,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, wait as fwait
 from datetime import date, datetime, timezone
 from typing import Any, Optional
+from urllib import request as urlrequest
 
 from fastapi import Body, FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -137,6 +138,29 @@ def _trigger_rank(trg: dict, exp: Optional[date], now: Optional[date]) -> tuple:
 
 
 # ---------------------------------------------------------------- endpoints
+
+
+def _keepalive_loop(url: str, interval: float) -> None:
+    # explicit User-Agent: Render sits behind Cloudflare, which can reject urllib's default
+    req = urlrequest.Request(url, headers={"User-Agent": "vera-keepalive/1.0"})
+    while True:
+        time.sleep(interval)
+        try:
+            urlrequest.urlopen(req, timeout=30).read()
+        except Exception as e:  # never let a failed ping kill the loop
+            print(f"[keepalive] ping failed: {e}", flush=True)
+
+
+@app.on_event("startup")
+def _start_keepalive() -> None:
+    """Render Free sleeps after ~15 min without inbound traffic, which wipes in-memory state. Pinging our own
+    public URL goes through Render's proxy, so it counts as traffic. RENDER_EXTERNAL_URL is set by Render itself;
+    locally neither var is set and this is a no-op."""
+    base = (os.getenv("KEEPALIVE_URL") or os.getenv("RENDER_EXTERNAL_URL") or "").rstrip("/")
+    interval = float(os.getenv("KEEPALIVE_INTERVAL_SECONDS", "300"))
+    if base and interval > 0:
+        threading.Thread(target=_keepalive_loop, args=(f"{base}/v1/healthz", interval),
+                         name="keepalive", daemon=True).start()
 
 
 @app.get("/v1/healthz")
